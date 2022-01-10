@@ -145,7 +145,26 @@ class _RecipeListState extends State<RecipeList> {
     );
   }
 
-  // TODO: Add startSearch
+  void startSearch(String value) {
+    // Tell the system to redraw the widgets by calling setState().
+    setState(() {
+      // Clear the current search list and reset the count, start and end positions.
+      currentSearchList.clear();
+      currentCount = 0;
+      currentEndPosition = pageCount;
+      currentStartPosition = 0;
+      hasMore = true;
+      value = value.trim();
+
+      // Check to make sure the search text hasn’t already been added to the previous search list.
+      if (!previousSearches.contains(value)) {
+        // Add the search item to the previous search list.
+        previousSearches.add(value);
+        // Save the new list of previous searches.
+        savePreviousSearches();
+      }
+    });
+  }
 
   Widget _buildRecipeLoader(BuildContext context) {
     if (searchTextController.text.length < 3) {
