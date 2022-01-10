@@ -104,41 +104,75 @@ class _RecipeListState extends State<RecipeList> {
         padding: const EdgeInsets.all(4.0),
         child: Row(
           children: [
-            // Replace
-            const Icon(Icons.search),
+            IconButton(
+              icon: const Icon(Icons.search),
+              // Add onPressed to handle the tap event.
+              onPressed: () {
+                // Use the current search text to start a search.
+                startSearch(searchTextController.text);
+                // Hide the keyboard by using the FocusScope class.
+                final currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
+            ),
             const SizedBox(
               width: 6.0,
             ),
-            // *** Start Replace
             Expanded(
               child: Row(
                 children: <Widget>[
                   Expanded(
+                    // Add a TextField to enter your search queries.
                     child: TextField(
                       decoration: const InputDecoration(
                           border: InputBorder.none, hintText: 'Search'),
                       autofocus: false,
-                      controller: searchTextController,
-                      onChanged: (query) => {
-                        if (query.length >= 3)
-                          {
-                            // Rebuild list
-                            setState(
-                              () {
-                                currentSearchList.clear();
-                                currentCount = 0;
-                                currentEndPosition = pageCount;
-                                currentStartPosition = 0;
-                              },
-                            )
-                          }
+                      // Set the keyboard action to TextInputAction.done. This closes the keyboard when the user presses the Done button.
+                      textInputAction: TextInputAction.done,
+                      // Save the search when the user finishes entering text.
+                      onSubmitted: (value) {
+                        if (!previousSearches.contains(value)) {
+                          previousSearches.add(value);
+                          savePreviousSearches();
+                        }
                       },
+                      controller: searchTextController,
                     ),
+                  ),
+                  // Create a PopupMenuButton to show previous searches.
+                  PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: lightGrey,
+                    ),
+                    // When the user selects an item from previous searches, start a new search.
+                    onSelected: (String value) {
+                      searchTextController.text = value;
+                      startSearch(searchTextController.text);
+                    },
+                    itemBuilder: (BuildContext context) {
+                      // Build a list of custom drop-down menus to display previous searches.
+                      return previousSearches
+                          .map<CustomDropdownMenuItem<String>>((String value) {
+                        return CustomDropdownMenuItem<String>(
+                          text: value,
+                          value: value,
+                          callback: () {
+                            setState(() {
+                              // If the X icon is pressed, remove the search from the previous searches and close the pop-up menu.
+                              previousSearches.remove(value);
+                              Navigator.pop(context);
+                            });
+                          },
+                        );
+                      }).toList();
+                    },
                   ),
                 ],
               ),
             ),
-            // *** End Replace
           ],
         ),
       ),
